@@ -32,15 +32,15 @@ TooN:
 
 living_room_traj%_loop.raw : living_room_traj%_loop ./build/kfusion/thirdparty/scene2raw 
 	if test -x ./build/kfusion/thirdparty/scene2raw ; then echo "..." ; else echo "do make before"; false ; fi
-	if test -x living_room_traj$(*F)_loop.raw; then echo "raw input file already present, no need for conversion. " ; else ./build/kfusion/thirdparty/scene2raw living_room_traj$(*F)_loop living_room_traj$(*F)_loop.raw; fi
+	if test -e ../../raw_trajectories/living_room_traj$(*F)_loop.raw ; then echo "raw input file already present, no need for conversion. " ; else ./build/kfusion/thirdparty/scene2raw ../../trajectories/living_room_traj$(*F)_loop ../../raw_trajectories/living_room_traj$(*F)_loop.raw; fi
 
 living_room_traj%_loop : 
-	mkdir $@
-	cd $@ ; wget http://www.doc.ic.ac.uk/~ahanda/$@.tgz; tar xzf $@.tgz 
+	echo "Download trajectory..."
+	if test -e ../../trajectories/$@ ; then echo "Done" ; else mkdir $@ ; cd $@ ; wget http://www.doc.ic.ac.uk/~ahanda/$@.tgz; tar xzf $@.tgz ; fi
 
 livingRoom%.gt.freiburg : 
 	echo  "Download ground truth trajectory..."
-	if test -x $@ ; then echo "Done" ; else wget http://www.doc.ic.ac.uk/~ahanda/VaFRIC/$@ ; fi
+	if test -e ../../ground_truths/$@ ; then echo "Done" ; else wget http://www.doc.ic.ac.uk/~ahanda/VaFRIC/$@ ; fi
 
 
 #### LOG GENERATION ####
@@ -66,10 +66,10 @@ livingRoom%.gt.freiburg :
 
 %.cuda.log  : living_room_traj%_loop.raw livingRoom%.gt.freiburg
 	$(MAKE) -C build  $(MFLAGS) kfusion-benchmark-cuda
-	nvprof --print-gpu-trace ./build/kfusion/kfusion-benchmark-cuda $($(*F)) -i  living_room_traj$(*F)_loop.raw -o  benchmark.$@ 2> nvprof.$@ || true
-	cat  nvprof.$@ | kfusion/thirdparty/nvprof2log.py >   kernels.$@
-	./kfusion/thirdparty/checkPos.py benchmark.$@  livingRoom$(*F).gt.freiburg > resume.$@
-	./kfusion/thirdparty/checkKernels.py kernels.$@   >> resume.$@
+	nvprof --print-gpu-trace ./build/kfusion/kfusion-benchmark-cuda $($(*F)) -i  ../../raw_trajectories/living_room_traj$(*F)_loop.raw -o  ../benchmarks/benchmark.$@ 2> nvprof_out/nvprof.$@ || true
+	cat  nvprof_out/nvprof.$@ | kfusion/thirdparty/nvprof2log.py >   kernel_results/kernels.$@
+	./kfusion/thirdparty/checkPos.py ../benchmarks/benchmark.$@  ../../ground_truths/livingRoom$(*F).gt.freiburg > ../accuracies/accuracy.$@
+	./kfusion/thirdparty/checkKernels.py kernel_results/kernels.$@   >> ../accuracies/accuracy.$@
 
 
 #### GENERAL GENERATION ####
