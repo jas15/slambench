@@ -1,17 +1,66 @@
 #!/bin/bash
 
-#Create Folders
-mkdir ../benchmarks
-mkdir ../benchmarks/$1
-mkdir ../accuracies
-mkdir ../accuracies/$1
+# Only argument is the trajectory number
 
-#Create benchmarks
-./run_bench.sh $1 1
-./run_bench.sh $1 2
-./run_bench.sh $1 3
+#sudo ~/jetson_clocks.sh --restore
+#
+#echo "========Standard Performance Mode========"
+#
+#echo "Attempt 1..."
+#
+#cd slambench
+#make $1.cuda.log
+#cd ..
+#./mv_results.sh $1 1
+#
+#echo "Done. ============="
+#
+#echo "Attempt 2..."
+#cd slambench
+#make $1.cuda.log
+#cd ..
+#./mv_results.sh $1 2
+#
+#echo "Done. ============="
+#
+#echo "Attempt 3..."
+#cd slambench
+#make $1.cuda.log
+#cd ..
+#./mv_results.sh $1 3
+#
+#echo "Done. ============="
 
-#Create accuracy files
-./get_accuracy.sh $1 1
-./get_accuracy.sh $1 2
-./get_accuracy.sh $1 3
+cd ../../
+./download_trajectory.sh $1
+cd KF
+
+echo "========Extreme Performance Mode========"
+
+sudo ~/jetson_clocks.sh
+
+echo "Attempt 1..."
+cd slambench
+make $1.cuda.log
+cd ..
+./mv_max_results.sh $1 1
+
+echo "Done. ============="
+
+echo "Attempt 2..."
+cd slambench
+make $1.cuda.log
+cd ..
+./mv_max_results.sh $1 2
+
+echo "Done. ============="
+
+echo "Attempt 3..."
+cd slambench
+make $1.cuda.log
+cd ..
+./mv_max_results.sh $1 3
+
+echo "Done. ============="
+
+echo "All Complete."
